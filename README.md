@@ -1,17 +1,14 @@
-# model-serving
-model-serving
+# flask-salary-predictor
+This is project predicts the salary of the employee based on the experience.
 
-step 1: create a virtual environment
-python -m venv venv
+# Model
+model.py trains and saves the model to the disk.
+model.pkb the pickle model 
 
-activate the enviroment:
-.\venv\Scripts\activate
-
-step 2: install the depenpencies modules
-
-python -m pip install -r requirement.txt
+# App
+app.py contains all the requiered for flask and to manage APIs.
 
 
-step 3: run the app
 
-python app.py
+Procedure--
+Open command Prompt and go to given directory and then run python app.py
