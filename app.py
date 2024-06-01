@@ -109,7 +109,7 @@ def predict():
 
     output = round(prediction[0], 2)
 
-    return render_template('index.html', prediction_text='Predication is {}'.format(output))
+    return render_template('index.html', prediction_text='PREDICTION IS {}'.format(output))
 
 
 @app.route('/predict_api',methods=['POST'])
