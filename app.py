@@ -34,6 +34,7 @@ def predict():
     
     #final_features = [np.array(int_features)]
     rawData = pd.read_csv('datatest.csv',  sep=',',  index_col=False)
+    rawData=rawData.loc[(rawData['contract'] == contract_no)]
     print(rawData)
 
     #rawData=rawData.loc[(rawData['contract']==200050059)]
@@ -108,7 +109,11 @@ def predict():
    
 
     output = round(prediction[0], 2)
-
+    
+    if output == 1:
+        output="fraud consumption"
+    else:
+        output="normal consumption"
     return render_template('index.html', prediction_text='PREDICTION IS {}'.format(output))
 
 
