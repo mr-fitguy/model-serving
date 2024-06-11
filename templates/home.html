@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV Prediction</title>
+    <title>CSV Prediction - Home</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <!-- Custom CSS -->
@@ -17,7 +17,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            background: url('static/images/csv_img.jpeg') no-repeat center center fixed;
+            background: url('static/images/home.jpeg') no-repeat center center fixed;
             background-size: cover;
             color: white;
         }
@@ -38,21 +38,9 @@
             margin-bottom: 30px;
             animation: slideDown 1s;
         }
-        .form-group {
+        .btn {
             width: 100%;
-        }
-        .btn-primary {
-            background-color: #f75110;
-            border: none;
-            animation: pulse 1.5s infinite;
-        }
-        .btn-primary:hover {
-            background-color: #f75110;
-        }
-        .note {
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #f75110;
+            margin-top: 10px;
         }
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -62,29 +50,13 @@
             from { transform: translateY(-100px); }
             to { transform: translateY(0); }
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>CSV Prediction</h1>
-        <form method="post" action="/predict" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="file">Upload CSV File:</label>
-                <input type="file" class="form-control-file" id="file" name="file" accept=".csv" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Predict</button>
-        </form>
-        {% if error %}
-        <div class="alert alert-danger mt-3" role="alert">
-            {{ error }}
-        </div>
-        {% endif %}
-        <p class="note">Your CSV file will be exported to the local directory.</p>
+        <h1>Choose Option Below</h1>
+        <button onclick="location.href='/single-customer'" class="btn btn-primary">Single Customer</button>
+        <button onclick="location.href='/multiple-customers'" class="btn btn-secondary">Multiple Customers</button>
     </div>
     <!-- Bootstrap JS (optional) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

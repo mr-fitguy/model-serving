@@ -133,7 +133,7 @@
 
   <div class="transparent-box">
     <h2>Predict Utility Consumption</h2>
-    <form action="{{ url_for('predict') }}" method="post">
+    <form action="{{ url_for('predict_one_customer') }}" method="post">
     <div style="color:black"> Customer Number </div> <input type="text" name="CustomerNo" placeholder="Customer Number" required="required" />
     <div style="color:black"> Total Consumption</div><input type="text" name="YearsExperience" placeholder="Total Consumption" required="required" />
       <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
