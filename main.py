@@ -49,8 +49,12 @@ def predict_one_customer():
    
 
     output = round(prediction[0], 2)
+    if(output==0):
+        res="FRAUD"
+    else:
+        res="NOT FRAUD"
 
-    return render_template('index.html', prediction_text='PREDICTION IS {}'.format(output))
+    return render_template('index.html', prediction_text='PREDICTION IS {}'.format(res))
 
 
 @app.route('/predict_api',methods=['POST'])
