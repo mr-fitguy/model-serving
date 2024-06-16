@@ -39,6 +39,16 @@ def predict_one_customer():
     Normal Consumption Inputs
     # contract_no = 200236826
     #new_consumption = 10
+    
+
+    Fraud Consumption Inputs
+    # contract_no = 200236832
+    #new_consumption = 7000.0
+
+    Normal Consumption Inputs
+    # contract_no = 200236832
+    #new_consumption = 10.0
+
     '''
     # contract_no = 200236826
     #new_consumption = 7000.0
