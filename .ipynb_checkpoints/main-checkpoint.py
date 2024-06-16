@@ -31,16 +31,8 @@ def predict_one_customer():
 
     contract_no = int(int_features[0])
     new_consumption = float(int_features[1])
-    '''
-    Fraud Consumption Inputs
-    # contract_no = 200236826
-    #new_consumption = 7000.0
 
-    Normal Consumption Inputs
-    # contract_no = 200236826
-    #new_consumption = 10
-    '''
-    # contract_no = 200236826
+    # contract_no = 200050059
     #new_consumption = 7000.0
     # print(contract_no)
     print(new_consumption)
