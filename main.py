@@ -6,6 +6,7 @@ import numpy as np
 import pickle
 
 app = Flask(__name__)
+#test
 
 loaded_svm_model = joblib.load('final_svm_model.pkl')
 required_columns = ['billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
