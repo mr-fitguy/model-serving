@@ -7,11 +7,11 @@ import pickle
 
 app = Flask(__name__)
 
-loaded_svm_model = joblib.load('final_svm_model.pkl')
-required_columns = ['billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
+loaded_svm_model = joblib.load('model_v1.pkl')
+required_columns = ['Unnamed: 0','billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
                    'SERVICE_STATUS', 'POWER_SUSCRIBED', 'TARIFF', 'ACTIVITY_CMS', 'READWITH', 'SEGMENT',
-                   'agency', 'zone']
-model = pickle.load(open('final_svm_model.pkl', 'rb'))
+                   'agency', 'zone','block']
+model = pickle.load(open('model_v1.pkl', 'rb'))
 
 @app.route('/')
 def home():
@@ -120,6 +120,109 @@ def predict():
     output_filename = 'predictions.csv'
     df.to_csv(output_filename, index=False)
     return send_file(output_filename, as_attachment=True)
+
+# @app.route('/bulk-predict', methods=['GET', 'POST'])
+# def bulk_predict():
+#     if request.method == 'POST':
+#         if 'file' not in request.files:
+#             return 'No file part'
+#         file = request.files['file']
+#         if file.filename == '':
+#             return 'No selected file'
+#         if file:
+#             user_df = pd.read_csv(file)
+#             if 'contract' not in user_df.columns or 'fraud_consumption' not in user_df.columns:
+#                 return 'Invalid file format. The CSV must contain "contract_no" and "fraud_consumption" columns.'
+
+#             main_df = pd.read_csv('data_final_v3.csv')
+
+#             merged_df = pd.merge(main_df, user_df, how='inner', left_on='contract', right_on='contract')
+#             merged_df['fraud_consumption'] = merged_df['fraud_consumption_y']
+
+#             df1 = merged_df[required_columns]
+#             imputer = SimpleImputer(strategy='mean')
+#             df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
+
+#             predictions = loaded_svm_model.predict(df_imputed)
+#             user_df['prediction']=predictions
+#             print(len(predictions))
+#             print(len(user_df))
+#             # merged_df['prediction'] = predictions
+
+#             output_csv_path = 'predicted_results.csv'
+#             user_df.to_csv(output_csv_path, index=False)
+            
+#             return send_file(output_csv_path, as_attachment=True)
+#     return '''
+#     <!doctype html>
+#     <title>Bulk Predict</title>
+#     <h1>Upload CSV file for bulk prediction</h1>
+#     <form method=post enctype=multipart/form-data>
+#       <input type=file name=file>
+#       <input type=submit value=Upload>
+#     </form>
+#     '''
+
+'''
+for testing use file1.csv
+'''
+
+@app.route('/bulk-predict', methods=['GET', 'POST'])
+def bulk_predict():
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return 'No file part'
+        file = request.files['file']
+        if file.filename == '':
+            return 'No selected file'
+        if file:
+            user_df = pd.read_csv(file)
+            if 'contract' not in user_df.columns or 'fraud_consumption' not in user_df.columns:
+                return 'Invalid file format. The CSV must contain "contract_no" and "fraud_consumption" columns.'
+
+            main_df = pd.read_csv('data_final_v3.csv')
+
+            merged_df = pd.merge(main_df, user_df, how='inner', left_on='contract', right_on='contract')
+            print(f'Number of rows in merged_df: {len(merged_df)}')
+
+            merged_df['fraud_consumption'] = merged_df['fraud_consumption_y']
+
+            # Drop duplicates based on the user_df's original rows
+            merged_df = merged_df.drop_duplicates(subset=user_df.columns)
+            print(f'Number of rows in merged_df after dropping duplicates: {len(merged_df)}')
+
+            df1 = merged_df[required_columns]
+            imputer = SimpleImputer(strategy='mean')
+            df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
+            print(f'Number of rows in df_imputed: {len(df_imputed)}')
+
+            predictions = loaded_svm_model.predict(df_imputed)
+            print(f'Number of predictions: {len(predictions)}')
+            print(f'Number of rows in user_df: {len(user_df)}')
+
+            if len(predictions) == len(user_df):
+                user_df['prediction'] = predictions
+            else:
+                return 'Error: Mismatch in the number of predictions and user data rows.'
+
+            output_csv_path = 'predicted_results.csv'
+            user_df.to_csv(output_csv_path, index=False)
+            
+            return send_file(output_csv_path, as_attachment=True)
+    return '''
+    <!doctype html>
+    <title>Bulk Predict</title>
+    <h1>Upload CSV file for bulk prediction</h1>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file>
+      <input type=submit value=Upload>
+    </form>
+    '''
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)
