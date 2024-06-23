@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, jsonify
 import pandas as pd
 import joblib
 from sklearn.impute import SimpleImputer
@@ -8,11 +8,9 @@ import pickle
 app = Flask(__name__)
 #test
 
-loaded_svm_model = joblib.load('model_v1.pkl')
-required_columns = ['Unnamed: 0','billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
-                   'SERVICE_STATUS', 'POWER_SUSCRIBED', 'TARIFF', 'ACTIVITY_CMS', 'READWITH', 'SEGMENT',
-                   'agency', 'zone','block']
-model = pickle.load(open('model_v1.pkl', 'rb'))
+
+
+
 
 @app.route('/')
 def home():
@@ -53,33 +51,41 @@ def predict_one_customer():
     '''
     # contract_no = 200236826
     #new_consumption = 7000.0
-    # print(contract_no)
+    print(contract_no)
     print(new_consumption)
     
     
     #final_features = [np.array(int_features)]
     rawData = pd.read_csv('balanced_data.csv')
-    #print(rawData)
+
 
     rawData=rawData.loc[(rawData['contract']==contract_no)]
-    print(rawData)
+    #print(rawData)
 
     #rawData['fraud_flag'] = np.where(rawData['fraud_flag'] == 1.0, 1, 0)
     rawData['fraud_consumption'] = new_consumption
     # rawData['1/1/2019'] = new_consumption
     print("rawData : ",rawData)
-
+    required_columns_model = ['contract','invoice_type','billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
+                   'SERVICE_STATUS', 'POWER_SUSCRIBED', 'TARIFF', 'ACTIVITY_CMS', 'READWITH', 'SEGMENT',
+                   'agency', 'zone','block']
     rawData.replace('', np.nan, inplace=True)
-    df1 = rawData[required_columns]
-    imputer = SimpleImputer(strategy='mean')
-    # df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
-    prediction = loaded_svm_model.predict(df1)
-    print("prediction :", prediction)
-    rawData['prediction'] = prediction
-    
-   
+    df1 = rawData[required_columns_model]
+    df1.set_index('contract', inplace = True)
 
-    output = round(prediction[0], 2)
+    #imputer = SimpleImputer(strategy='mean')
+    #df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
+    # load model from file
+    loaded_model = pickle.load(open("pima.pickle.new.dat", "rb"))
+    y_pred1 = loaded_model.predict(df1)
+    prediction = [round(value) for value in y_pred1]
+    print("prediction :", prediction)
+    df1['prediction'] = prediction
+    
+
+
+    output = round(prediction[0], 0)
+    
     if(output==0):
         res="Normal Consumption"
     else:
@@ -94,6 +100,8 @@ def predict_api():
     For direct API calls trought request
     '''
     data = request.get_json(force=True)
+
+    model = pickle.load(open('final_svm_model.pkl', 'rb'))
     prediction = model.predict([np.array(list(data.values()))])
 
     output = prediction[0]
@@ -112,14 +120,53 @@ def predict():
     if not file.filename.endswith('.csv'):
         return render_template('csv_input.html', error="Only CSV files are supported")
     df = pd.read_csv(file)
+    df.sort_values("contract", inplace=True)
+
+    # dropping ALL duplicate values
+    df.drop_duplicates(subset="contract",
+                     keep=False, inplace=True)
+
+
+    rawData = pd.read_csv('balanced_data.csv')
+    rawData.sort_values("contract", inplace=True)
+
+    # dropping ALL duplicate values
+    rawData.drop_duplicates(subset="contract",
+                     keep=False, inplace=True)
+
+
+    #rawData.set_index('contract', inplace = True)
+    
+
+    
+
     df.replace('', np.nan, inplace=True)
-    df1 = df[required_columns]
-    imputer = SimpleImputer(strategy='mean')
-    df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
-    predictions = loaded_svm_model.predict(df_imputed)
-    df['prediction'] = predictions
+    #df.set_index('contract', inplace = True)
+
+    df_merged = df.merge(rawData, on='contract', how='right')
+    df_merged = df_merged.rename(columns = {'fraud_consumption_x':'fraud_consumption'})
+
+
+    
+    required_columns_model = ['contract','invoice_type','billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
+                   'SERVICE_STATUS', 'POWER_SUSCRIBED', 'TARIFF', 'ACTIVITY_CMS', 'READWITH', 'SEGMENT',
+                   'agency', 'zone','block']
+    df_merged.replace('', np.nan, inplace=True)
+    df_merged = df_merged[required_columns_model]
+    df_merged.set_index('contract', inplace = True)
+
+
+    
+    loaded_model = pickle.load(open("pima.pickle.new.dat", "rb"))
+    y_pred1 = loaded_model.predict(df_merged)
+    prediction = [round(value) for value in y_pred1]
+    #print("prediction :", prediction)
+    df_merged['prediction'] = prediction
+
+    
+
     output_filename = 'predictions.csv'
-    df.to_csv(output_filename, index=False)
+    df_merged.to_csv(output_filename, index=True)
     return send_file(output_filename, as_attachment=True)
 
 # @app.route('/bulk-predict', methods=['GET', 'POST'])
@@ -191,12 +238,14 @@ def bulk_predict():
             # Drop duplicates based on the user_df's original rows
             merged_df = merged_df.drop_duplicates(subset=user_df.columns)
             print(f'Number of rows in merged_df after dropping duplicates: {len(merged_df)}')
-
+            required_columns = ['Unnamed: 0','billing_type', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', 'fraud_consumption',
+                   'SERVICE_STATUS', 'POWER_SUSCRIBED', 'TARIFF', 'ACTIVITY_CMS', 'READWITH', 'SEGMENT',
+                   'agency', 'zone','block']
             df1 = merged_df[required_columns]
             imputer = SimpleImputer(strategy='mean')
             df_imputed = pd.DataFrame(imputer.fit_transform(df1), columns=df1.columns)
             print(f'Number of rows in df_imputed: {len(df_imputed)}')
-
+            loaded_svm_model = joblib.load('model_v1.pkl')
             predictions = loaded_svm_model.predict(df_imputed)
             print(f'Number of predictions: {len(predictions)}')
             print(f'Number of rows in user_df: {len(user_df)}')
